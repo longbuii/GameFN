@@ -75,8 +75,8 @@ public class PlayerStatus : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.K))
         {
-            ToggleStatus(); // Khi nhấn nút K, chuyển đổi trạng thái status
-            UpdateUI(); // Đảm bảo rằng bạn gọi UpdateUI() khi bạn mở trạng thái
+            ToggleStatus(); 
+            UpdateUI(); 
         }
     }
 

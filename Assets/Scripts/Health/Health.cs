@@ -10,11 +10,10 @@ using static Unity.Collections.AllocatorManager;
 
 public class Health : MonoBehaviour
 {
-    // Start is called before the first frame update
+  
     [Header("Health")]
-    public float startingHealth;
+    public float startingHealth = 10;
     public float maxHealth;
-    public float initialHealth; // Biến tạm thời để lưu trạng thái máu ban đầu
 
     public float MaxHealth => maxHealth;
     public float currentHealth { get; private set; }
@@ -54,63 +53,38 @@ public class Health : MonoBehaviour
 
         currentHealth = startingHealth;
 
-        // Kiểm tra xem khóa "PlayerHealth" đã tồn tại trong PlayerPrefs
-        if (PlayerPrefs.HasKey("PlayerHealth"))
-        {
-            currentHealth = PlayerPrefs.GetFloat("PlayerHealth", startingHealth);
-            maxHealth = PlayerPrefs.GetFloat("PlayerMaxHealth", 10f);
-            initialHealth = PlayerPrefs.GetFloat("PlayerInitialHealth", 10f);
-        }
         playerStatus.UpdateUI();
     }
 
-    void OnApplicationQuit()
-    {
-        // Khi ứng dụng được đóng, lưu giá trị `currentHealth` vào PlayerPrefs.
-        ResetHealth();
-    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Y))
         {
-            // Giảm máu khi nút Y được nhấn
-            TakeDamage(5f); // Điều chỉnh số lượng máu bị giảm tùy theo nhu cầu của bạn.
+            TakeDamage(5f); 
         }
     }
-    public void ResetHealth()
-    {
-        PlayerPrefs.SetFloat("PlayerInitialHealth", initialHealth);
-        currentHealth = initialHealth;
-        PlayerPrefs.SetFloat("PlayerHealth", currentHealth);
-        PlayerPrefs.Save();
-        playerStatus.UpdateUI();
 
-    }
     public void TakeDamage(float _damage)
     {
         if (invulnerable) return;
 
         if (playerStatus.Defense > 0)
         {
-            // Trừ sát thương từ Defense
             float actualDamage = CalculateActualDamage(_damage);
 
             playerStatus.Defense -= actualDamage;
 
-            // Nếu giáp dưới 0, đặt nó thành 0 thông qua thuộc tính Defense
             playerStatus.Defense = Mathf.Max(playerStatus.Defense, 0);
 
-            // Thông báo cho PlayerStatus biết rằng giáp đã bị trừ
             playerStatus.UpdateUI();
         }
         else
         {
-            // Trừ sát thương vào máu
             currentHealth = Mathf.Clamp(currentHealth - _damage, 0, startingHealth);
             OnHealthChanged?.Invoke(currentHealth);
         }
 
-        // Kiểm tra xem player còn máu hay không
         if (currentHealth > 0)
         {
             anim.SetTrigger("hurt");
@@ -123,7 +97,6 @@ public class Health : MonoBehaviour
             {
                 rb.bodyType = RigidbodyType2D.Static;
 
-                // Deactivate all attached component classes
                 foreach (Behaviour component in components)
                     component.enabled = false;
                 anim.SetBool("Jump", false);
@@ -132,7 +105,6 @@ public class Health : MonoBehaviour
                 SoundManager.instance.Playsound(deathSound);
             }
         }
-        // Gọi sự kiện OnHealthChanged để cập nhật UI
         OnHealthChanged?.Invoke(currentHealth);
     }
 
@@ -145,7 +117,6 @@ public class Health : MonoBehaviour
         }
         else
         {
-            // Handle the case where playerStatus is null (e.g., log an error or use a default value).
             return rawDamage;
         }
     }
@@ -170,18 +141,16 @@ public class Health : MonoBehaviour
     {
         startingHealth = _value;
 
-        initialHealth = _value;
     }
 
     public void Respawn()
     {
-        Setheal(initialHealth); // Đặt lại máu về giá trị ban đầu
+        Setheal(startingHealth); 
         rb.bodyType = RigidbodyType2D.Dynamic;
         anim.ResetTrigger("die");
         anim.Play("Moving");
         StartCoroutine(Inuvunerability());
 
-        // Activate all attached component classes
         foreach (Behaviour component in components)
             component.enabled = true;
         TakeDamage(damage);
